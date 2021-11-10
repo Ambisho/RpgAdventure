@@ -12,23 +12,30 @@ namespace RpgAdventure
 
         private PlayerInput m_PlayerInput;
         private CharacterController m_ChController;
+        private Animator m_Animator;
         private Camera m_MainCamera;
+
+        private readonly int m_HashForwardSpeed = Animator.StringToHash("ForwardSpeed");
 
         private void Awake()
         {
             m_ChController = GetComponent<CharacterController>();
             m_PlayerInput = GetComponent<PlayerInput>();
+            m_Animator = GetComponent<Animator>();
             m_MainCamera = Camera.main;
         }
         void FixedUpdate()
         {
-            Vector3 moveInput = m_PlayerInput.MoveInput;          
+            Vector3 moveInput = m_PlayerInput.MoveInput;
             Quaternion camRotation = m_MainCamera.transform.rotation;
             Vector3 targetDirection = camRotation * moveInput;
             targetDirection.y = 0;
 
             m_ChController.Move(targetDirection.normalized * speed * Time.fixedDeltaTime);
             m_ChController.transform.rotation = Quaternion.Euler(0, camRotation.eulerAngles.y, 0);
+
+            m_Animator.SetFloat("m_HashForwardSpeed", moveInput.magnitude);
+
         }
     }
 }
