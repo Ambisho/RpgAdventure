@@ -9,38 +9,30 @@ namespace RpgAdventure
     {
         public float speed;
         public float rotationSpeed;
+        
 
         private Rigidbody m_Rb;
         private Vector3 m_Movement;
-        private Quaternion m_Rotation;
+        private Camera m_MainCamera;
 
-        private void Start()
+        private void Awake()
         {
             m_Rb = GetComponent<Rigidbody>();
-
+            m_MainCamera = Camera.main;
         }
-
         void FixedUpdate()
         {
             float horizontalInput = Input.GetAxis("Horizontal");
             float verticalInput = Input.GetAxis("Vertical");
 
-            m_Movement = new Vector3(horizontalInput, 0, verticalInput);
+            m_Movement.Set(horizontalInput, 0, verticalInput);
             m_Movement.Normalize();
 
-            Vector3 desiredForward = Vector3.RotateTowards(
-                transform.forward,
-                m_Movement,
-                Time.fixedDeltaTime * rotationSpeed,
-                0
-           );
+            Quaternion camRotation = m_MainCamera.transform.rotation;
 
-
-
-            m_Rotation = Quaternion.LookRotation(desiredForward);
 
             m_Rb.MovePosition(m_Rb.position + m_Movement * speed * Time.fixedDeltaTime);
-            m_Rb.MoveRotation(m_Rotation);
+            m_Rb.MoveRotation(Quaternion.Euler(0, camRotation.eulerAngles.y, 0));
         }
     }
 }
