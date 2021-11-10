@@ -6,9 +6,9 @@ namespace RpgAdventure
 {
     public class PlayerInput : MonoBehaviour
     {
-        private Vector2 m_Movement;
+        private Vector3 m_Movement;
 
-        public Vector2 MoveInput
+        public Vector3 MoveInput
         {
             get
             {
@@ -20,6 +20,7 @@ namespace RpgAdventure
         {
             m_Movement.Set(
                 Input.GetAxis("Horizontal"),
+                0,
                 Input.GetAxis("Vertical")
                 );
         }
