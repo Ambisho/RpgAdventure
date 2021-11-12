@@ -7,13 +7,21 @@ namespace RpgAdventure
 
     public class PlayerController : MonoBehaviour
     {
+
+        const float k_Acceleration = 20f;
+        const float k_Deceleration = 25f;
+
         public float maxForwardSpeed = 8.0f;
         public float rotationSpeed;
+        public float m_MaxRotationSpeed = 1200;
+        public float m_MinRotationSpeed = 800;
 
         private PlayerInput m_PlayerInput;
         private CharacterController m_ChController;
         private Animator m_Animator;
-        private Camera m_MainCamera;
+        private CameraController m_CameraController;
+
+        private Quaternion m_TargetRotation;
 
         private float m_DesiredForwardSpeed;
         private float m_ForwardSpeed;
@@ -25,12 +33,29 @@ namespace RpgAdventure
             m_ChController = GetComponent<CharacterController>();
             m_PlayerInput = GetComponent<PlayerInput>();
             m_Animator = GetComponent<Animator>();
-            m_MainCamera = Camera.main;
+            m_CameraController = GetComponent<CameraController>();
         }
         private void FixedUpdate()
         {
             ComputeMovement();
+            ComputeRotation();
 
+            if (m_PlayerInput.IsMoveInput)
+            {
+                float rotationSpeed = Mathf.Lerp(m_MaxRotationSpeed, m_MinRotationSpeed, m_ForwardSpeed / m_DesiredForwardSpeed);
+                m_TargetRotation = Quaternion.RotateTowards(
+                    transform.rotation,
+                    m_TargetRotation,
+                    rotationSpeed * Time.fixedDeltaTime);
+
+                transform.rotation = m_TargetRotation;
+            }
+
+        }
+
+        private void OnAnimatorMove()
+        {
+            m_ChController.Move(m_Animator.deltaPosition);
         }
 
         private void ComputeMovement()
@@ -38,14 +63,41 @@ namespace RpgAdventure
             Vector3 moveInput = m_PlayerInput.MoveInput.normalized;
             m_DesiredForwardSpeed = moveInput.magnitude * maxForwardSpeed;
 
+            float acceleration = m_PlayerInput.IsMoveInput ? k_Acceleration : k_Deceleration;
+
+
             m_ForwardSpeed = Mathf.MoveTowards(
                 m_ForwardSpeed,
                 m_DesiredForwardSpeed,
-                Time.fixedDeltaTime);
+                Time.fixedDeltaTime * acceleration);
 
-           
 
-            m_Animator.SetFloat(m_HashForwardSpeed , m_ForwardSpeed);
+
+            m_Animator.SetFloat(m_HashForwardSpeed, m_ForwardSpeed);
+        }
+
+        private void ComputeRotation()
+        {
+            Vector3 moveInput = m_PlayerInput.MoveInput.normalized;
+            Vector3 cameraDirection = Quaternion.Euler(
+                0,
+                m_CameraController.freeLookCamera.m_XAxis.Value,
+                0) * Vector3.forward;
+
+            Quaternion targetRotation;
+
+            if (Mathf.Approximately(Vector3.Dot(moveInput, Vector3.forward), -1.0f))
+            {
+                targetRotation = Quaternion.LookRotation(-cameraDirection);
+            }
+            else
+            {
+                Quaternion movementRotation = Quaternion.FromToRotation(Vector3.forward, moveInput);
+                targetRotation = Quaternion.LookRotation(movementRotation * cameraDirection);
+            }
+            m_TargetRotation = targetRotation;
         }
     }
+
+
 }
