@@ -33,7 +33,7 @@ namespace RpgAdventure
             m_ChController = GetComponent<CharacterController>();
             m_PlayerInput = GetComponent<PlayerInput>();
             m_Animator = GetComponent<Animator>();
-            m_CameraController = GetComponent<CameraController>();
+            m_CameraController = Camera.main.GetComponent<CameraController>();
         }
         private void FixedUpdate()
         {
@@ -81,7 +81,7 @@ namespace RpgAdventure
             Vector3 moveInput = m_PlayerInput.MoveInput.normalized;
             Vector3 cameraDirection = Quaternion.Euler(
                 0,
-                m_CameraController.freeLookCamera.m_XAxis.Value,
+                m_CameraController.PlayerCam.m_XAxis.Value,
                 0) * Vector3.forward;
 
             Quaternion targetRotation;
